@@ -1,39 +1,52 @@
 package model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Pedido {
-    public enum Status {
-        ABERTO, FINALIZADO, PAGO, ENTREGUE
+    public enum Status { ABERTO, FINALIZADO, PAGO, ENTREGUE }
+
+    private static long contador = 1;
+    private final long id;
+    private final Cliente cliente;
+    private final LocalDateTime dataCriacao;
+    private Status status;
+    private final List<ItemPedido> itens = new ArrayList<>();
+
+    public Pedido(Cliente cliente) {
+        this.id = contador++;
+        this.cliente = cliente;
+        this.dataCriacao = LocalDateTime.now();
+        this.status = Status.ABERTO;
     }
 
-    private Long id;
-    private Cliente cliente;
-    private LocalDateTime dataCriacao;
-    private Status status;
-    private List<ItemPedido> itens;
-
-    public Pedido(Long id, Cliente cliente) {
+    public Pedido(long id, Cliente cliente) {
         this.id = id;
         this.cliente = cliente;
         this.dataCriacao = LocalDateTime.now();
         this.status = Status.ABERTO;
-        this.itens = new ArrayList<>();
     }
 
-    public Long getId() { return id; }
-    public Cliente getCliente() { return cliente; }
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public Status getStatus() { return status; }
-    public List<ItemPedido> getItens() { return itens; }
-
-    public void setStatus(Status status) {
-        this.status = status;
+    public long getId() {
+        return id;
     }
 
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public LocalDateTime getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public List<ItemPedido> getItens() {
+        return itens;
+    }
 
     public void adicionarItem(ItemPedido item) {
         itens.add(item);
@@ -43,27 +56,31 @@ public class Pedido {
         itens.remove(item);
     }
 
-    public BigDecimal getValorTotal() {
-        return itens.stream()
-                .map(ItemPedido::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public void finalizar() {
-        if (status == Status.ABERTO) {
-            status = Status.FINALIZADO;
-        }
+        this.status = Status.FINALIZADO;
     }
 
     public void pagar() {
-        if (status == Status.FINALIZADO) {
-            status = Status.PAGO;
-        }
+        this.status = Status.PAGO;
     }
 
     public void entregar() {
-        if (status == Status.PAGO) {
-            status = Status.ENTREGUE;
+        this.status = Status.ENTREGUE;
+    }
+
+    public double getValorTotal() {
+        return itens.stream()
+                .mapToDouble(i -> i.getPrecoVenda().doubleValue() * i.getQuantidade())
+                .sum();
+    }
+
+    public static void atualizarContador(long ultimoId) {
+        if (ultimoId >= contador) {
+            contador = ultimoId + 1;
         }
     }
 }

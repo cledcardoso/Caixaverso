@@ -1,28 +1,46 @@
 package model;
 
-import java.time.LocalDateTime;
-
 public class Cliente {
+    private static long contador = 1;
+    private final long id;
     private String cpf;
     private String nome;
     private String email;
-    private LocalDateTime dataCadastro;
 
     public Cliente(String cpf, String nome, String email) {
-        if (cpf == null || cpf.isBlank()) {
-            throw new IllegalArgumentException("CPF é obrigatório.");
-        }
+        this.id = contador++;
         this.cpf = cpf;
         this.nome = nome;
         this.email = email;
-        this.dataCadastro = LocalDateTime.now();
     }
 
-    public String getCpf() { return cpf; }
-    public String getNome() { return nome; }
-    public String getEmail() { return email; }
-    public LocalDateTime getDataCadastro() { return dataCadastro; }
+    public long getId() {
+        return id;
+    }
 
-    public void setNome(String nome) { this.nome = nome; }
-    public void setEmail(String email) { this.email = email; }
+    public String getCpf() {
+        return cpf;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public static void atualizarContador(long ultimoId) {
+        if (ultimoId >= contador) {
+            contador = ultimoId + 1;
+        }
+    }
 }

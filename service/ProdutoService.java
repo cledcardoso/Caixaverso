@@ -29,7 +29,7 @@ public class ProdutoService {
                     String nome = partes[1];
                     String descricao = partes[2];
                     BigDecimal preco = new BigDecimal(partes[3]);
-                    produtos.add(new Produto(id, nome, descricao, preco));
+                    produtos.add(new Produto(nome, descricao, preco));
                 }
             }
         } catch (IOException e) {

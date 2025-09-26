@@ -89,15 +89,13 @@ public class Main {
     }
 
     private static void cadastrarProduto() {
-        System.out.print("ID do produto: ");
-        Long id = sc.nextLong(); sc.nextLine();
         System.out.print("Nome: ");
         String nome = sc.nextLine();
         System.out.print("Descrição: ");
         String descricao = sc.nextLine();
         System.out.print("Preço: ");
         BigDecimal preco = sc.nextBigDecimal(); sc.nextLine();
-        Produto produto = new Produto(id, nome, descricao, preco);
+        Produto produto = new Produto(nome, descricao, preco);
         produtoService.cadastrarProduto(produto);
     }
 
