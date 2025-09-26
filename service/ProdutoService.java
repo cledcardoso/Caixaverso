@@ -16,6 +16,7 @@ public class ProdutoService {
             return;
         }
         produtos.add(produto);
+        System.out.println("Produto cadastrado com sucesso!");
     }
 
     public Optional<Produto> buscarPorId(Long id) {
@@ -31,13 +32,14 @@ public class ProdutoService {
             produto.setNome(novoNome);
             produto.setDescricao(novaDescricao);
             produto.setPrecoBase(novoPreco);
-            System.out.println("Produto atualizado: " + produto.getNome());
+            System.out.println("Produto atualizado com sucesso!");
         } else {
             System.out.println("Produto não encontrado.");
         }
     }
 
     public void listarProdutos() {
-        produtos.forEach(p -> System.out.println("ID: " + p.getId() + " - Nome: " + p.getNome()));
+        System.out.println("\n=== Lista de Produtos ===");
+        produtos.forEach(p -> System.out.println("ID: " + p.getId() + " | Nome: " + p.getNome() + " | Preço: R$" + p.getPrecoBase()));
     }
 }

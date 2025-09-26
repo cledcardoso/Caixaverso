@@ -15,6 +15,7 @@ public class ClienteService {
             return;
         }
         clientes.add(cliente);
+        System.out.println("Cliente cadastrado com sucesso!");
     }
 
     public Optional<Cliente> buscarPorCpf(String cpf) {
@@ -29,13 +30,14 @@ public class ClienteService {
             Cliente cliente = clienteOpt.get();
             cliente.setNome(novoNome);
             cliente.setEmail(novoEmail);
-            System.out.println("Cliente atualizado: " + cliente.getNome());
+            System.out.println("Cliente atualizado com sucesso!");
         } else {
             System.out.println("Cliente não encontrado.");
         }
     }
 
     public void listarClientes() {
-        clientes.forEach(c -> System.out.println("CPF: " + c.getCpf() + " - Nome: " + c.getNome()));
+        System.out.println("\n=== Lista de Clientes ===");
+        clientes.forEach(c -> System.out.println("CPF: " + c.getCpf() + " | Nome: " + c.getNome() + " | Email: " + c.getEmail()));
     }
 }
