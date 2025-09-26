@@ -159,6 +159,7 @@ public class Main {
         String email = sc.nextLine();
         Cliente cliente = new Cliente(cpf, nome, email);
         clienteService.cadastrarCliente(cliente);
+        System.out.println("Cliente cadastrado com sucesso.");
     }
 
     private static void atualizarCliente() {
@@ -187,8 +188,8 @@ public class Main {
             String email = sc.nextLine();
 
             clienteService.atualizarCliente(cpf, nome, email);
+            System.out.println("Cliente atualizado com sucesso.");
             break;
-
         } while (true);
     }
 
@@ -201,6 +202,7 @@ public class Main {
         BigDecimal preco = sc.nextBigDecimal(); sc.nextLine();
         Produto produto = new Produto(nome, descricao, preco);
         produtoService.cadastrarProduto(produto);
+        System.out.println("Produto cadastrado com sucesso.");
     }
 
     private static void atualizarProduto() {
@@ -233,6 +235,7 @@ public class Main {
         BigDecimal preco = sc.nextBigDecimal(); sc.nextLine();
 
         produtoService.atualizarProduto(id, nome, descricao, preco);
+        System.out.println("Produto atualizado com sucesso.");
     }
 
     private static void criarPedido() {
@@ -369,11 +372,11 @@ public class Main {
             }
 
             pedidoService.adicionarItem(pedido, produtoOpt.get(), qtd, precoVenda);
+            System.out.println("Item adicionado ao pedido.");
         } else {
             System.out.println("Produto não encontrado.");
         }
     }
-
 
     private static void removerItem() {
         if (pedidoService.listarPedidosVazios()) {
@@ -400,8 +403,8 @@ public class Main {
         } while (true);
 
         pedidoService.removerItem(pedido, id);
+        System.out.println("Item removido do pedido.");
     }
-
 
     private static void alterarQuantidade() {
         if (pedidoService.listarPedidosVazios()) {
@@ -435,6 +438,7 @@ public class Main {
         }
 
         pedidoService.alterarQuantidade(pedido, id, qtd);
+        System.out.println("Quantidade alterada com sucesso.");
     }
 
     private static void finalizarPedido() {
@@ -455,9 +459,9 @@ public class Main {
         }
 
         pedidoService.finalizarPedido(pedido);
+        System.out.println("Pedido finalizado.");
         new Thread(new NotificacaoCriacao(pedido)).start();
     }
-
 
     private static void pagarPedido() {
         if (pedidoService.listarPedidosVazios()) {
@@ -472,6 +476,7 @@ public class Main {
         }
 
         pedidoService.pagarPedido(pedido);
+        System.out.println("Pedido pago.");
         new Thread(new NotificacaoPagamento(pedido)).start();
     }
 
@@ -488,6 +493,7 @@ public class Main {
         }
 
         pedidoService.entregarPedido(pedido);
+        System.out.println("Pedido entregue.");
         new Thread(new NotificacaoEntrega(pedido)).start();
     }
 
