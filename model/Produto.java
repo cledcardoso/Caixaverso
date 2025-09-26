@@ -20,7 +20,6 @@ public class Produto {
     public String getDescricao() { return descricao; }
     public BigDecimal getPrecoBase() { return precoBase; }
 
-    public void setId(Long id) { this.id = id; }
     public void setNome(String nome) { this.nome = nome; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
     public void setPrecoBase(BigDecimal precoBase) { this.precoBase = precoBase; }

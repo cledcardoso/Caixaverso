@@ -5,22 +5,22 @@ import java.math.BigDecimal;
 public class ItemPedido {
     private Produto produto;
     private int quantidade;
-    private BigDecimal precoUnitario;
+    private BigDecimal precoVenda;
 
-    public ItemPedido(Produto produto, int quantidade, BigDecimal precoUnitario) {
+    public ItemPedido(Produto produto, int quantidade, BigDecimal precoVenda) {
         this.produto = produto;
         this.quantidade = quantidade;
-        this.precoUnitario = precoUnitario;
-    }
-
-    public BigDecimal calcularSubtotal() {
-        return this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
+        this.precoVenda = precoVenda;
     }
 
     public Produto getProduto() { return produto; }
     public int getQuantidade() { return quantidade; }
-    public BigDecimal getPrecoUnitario() { return precoUnitario; }
-    public void setProduto(Produto produto) { this.produto = produto; }
+    public BigDecimal getPrecoVenda() { return precoVenda; }
+
     public void setQuantidade(int quantidade) { this.quantidade = quantidade; }
-    public void setPrecoUnitario(BigDecimal precoUnitario) { this.precoUnitario = precoUnitario; }
+
+    public BigDecimal getValorTotal() {
+        return precoVenda.multiply(BigDecimal.valueOf(quantidade));
+    }
 }
+    

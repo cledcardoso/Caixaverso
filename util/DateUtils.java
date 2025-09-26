@@ -1,9 +1,9 @@
 package util;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DateUtils {
 
@@ -13,7 +13,7 @@ public class DateUtils {
     /**
      * Retorna a data atual formatada como string.
      */
-    public static String dataAtualFormatada() {
+    public static String formatarDataAtual() {
         return formatter.format(LocalDateTime.now());
     }
 
@@ -33,6 +33,7 @@ public class DateUtils {
 
     /**
      * Verifica se a data está em horário de verão na zona Brasil.
+     * Obs: Pode não refletir mudanças futuras na legislação.
      */
     public static boolean estaEmHorarioDeVerao(LocalDateTime data) {
         ZoneId zonaBrasil = ZoneId.of("America/Sao_Paulo");
@@ -42,9 +43,15 @@ public class DateUtils {
 
     /**
      * Converte uma data para outro fuso horário.
+     * Retorna a data original se o fuso for inválido.
      */
     public static ZonedDateTime converterFuso(LocalDateTime data, String zonaDestino) {
-        ZoneId destino = ZoneId.of(zonaDestino);
-        return data.atZone(ZoneId.systemDefault()).withZoneSameInstant(destino);
+        try {
+            ZoneId destino = ZoneId.of(zonaDestino);
+            return data.atZone(ZoneId.systemDefault()).withZoneSameInstant(destino);
+        } catch (Exception e) {
+            System.out.println("Fuso horário inválido: " + zonaDestino);
+            return data.atZone(ZoneId.systemDefault());
+        }
     }
 }
