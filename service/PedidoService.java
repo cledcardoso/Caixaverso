@@ -2,6 +2,10 @@ package service;
 
 import model.*;
 
+import util.NotificacaoCriacao;
+import util.NotificacaoPagamento;
+import util.NotificacaoEntrega;
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -74,12 +78,21 @@ public class PedidoService {
             System.out.println("Pedido não está aberto para alterações.");
             return;
         }
+        if (quantidade <= 0 || precoVenda.compareTo(BigDecimal.ZERO) <= 0) {
+            System.out.println("Quantidade e preço devem ser maiores que zero.");
+            return;
+        }
         ItemPedido item = new ItemPedido(produto, quantidade, precoVenda);
         pedido.adicionarItem(item);
         System.out.println("Item adicionado ao pedido.");
     }
 
     public void removerItem(Pedido pedido, long idProduto) {
+        if (pedido.getStatus() != Pedido.Status.ABERTO) {
+            System.out.println("Pedido não está aberto para alterações.");
+            return;
+        }
+
         ItemPedido item = pedido.getItens().stream()
                 .filter(i -> i.getProduto().getId() == idProduto)
                 .findFirst()
@@ -94,28 +107,67 @@ public class PedidoService {
     }
 
     public void alterarQuantidade(Pedido pedido, long idProduto, int novaQuantidade) {
+        if (pedido.getStatus() != Pedido.Status.ABERTO) {
+            System.out.println("Pedido não está aberto para alterações.");
+            return;
+        }
+
         ItemPedido item = pedido.getItens().stream()
                 .filter(i -> i.getProduto().getId() == idProduto)
                 .findFirst()
                 .orElse(null);
 
-        if (item != null && pedido.getStatus() == Pedido.Status.ABERTO) {
+        if (item != null) {
             item.setQuantidade(novaQuantidade);
             System.out.println("Quantidade atualizada.");
         } else {
-            System.out.println("Item não encontrado ou pedido não está aberto.");
+            System.out.println("Item não encontrado no pedido.");
         }
     }
 
-    public void pagarPedido(Pedido pedido) {
-        pedido.pagar();
+    public void finalizarPedido(Pedido pedido) {
+        if (pedido.getStatus() != Pedido.Status.ABERTO) {
+            System.out.println("Pedido já foi finalizado ou está em outro estado.");
+            return;
+        }
+
+        if (pedido.getItens().isEmpty()) {
+            System.out.println("Erro: pedido não pode ser finalizado sem itens.");
+            return;
+        }
+
+        if (pedido.getValorTotal().compareTo(BigDecimal.ZERO) <= 0) {
+            System.out.println("Erro: valor total do pedido deve ser maior que zero.");
+            return;
+        }
+
+        pedido.setStatus(Pedido.Status.AGUARDANDO_PAGAMENTO);
         salvarPedidoNoArquivo(pedido);
+        new Thread(new NotificacaoCriacao(pedido)).start();
+        System.out.println("Pedido finalizado e aguardando pagamento.");
+    }
+
+    public void pagarPedido(Pedido pedido) {
+        if (pedido.getStatus() != Pedido.Status.AGUARDANDO_PAGAMENTO) {
+            System.out.println("Erro: pagamento só pode ser feito em pedidos aguardando pagamento.");
+            return;
+        }
+
+        pedido.setStatus(Pedido.Status.PAGO);
+        salvarPedidoNoArquivo(pedido);
+        new Thread(new NotificacaoPagamento(pedido)).start();
         System.out.println("Pedido pago.");
     }
 
     public void entregarPedido(Pedido pedido) {
-        pedido.entregar();
+        if (pedido.getStatus() != Pedido.Status.PAGO) {
+            System.out.println("Erro: pedido só pode ser entregue após pagamento.");
+            return;
+        }
+
+        pedido.setStatus(Pedido.Status.FINALIZADO);
         salvarPedidoNoArquivo(pedido);
+        new Thread(new NotificacaoEntrega(pedido)).start();
         System.out.println("Pedido entregue.");
     }
 

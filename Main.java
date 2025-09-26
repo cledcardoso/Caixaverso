@@ -1,7 +1,9 @@
 import model.*;
 import service.*;
 import util.DateUtils;
-import util.NotificadorEmail;
+import util.NotificacaoCriacao;
+import util.NotificacaoPagamento;
+import util.NotificacaoEntrega;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -253,7 +255,7 @@ public class Main {
     private static void finalizarPedido() {
         if (pedidoAtual != null) {
             pedidoAtual.finalizar();
-            System.out.println("Pedido finalizado.");
+            System.out.println("Pedido concluído.");
         } else {
             System.out.println("Nenhum pedido existente.");
         }
