@@ -10,6 +10,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PedidoService {
     private final List<Pedido> pedidos = new ArrayList<>();
@@ -73,6 +74,10 @@ public class PedidoService {
         return pedido;
     }
 
+    public Optional<Pedido> buscarPorId(long id) {
+        return pedidos.stream().filter(p -> p.getId() == id).findFirst();
+    }
+
     public void adicionarItem(Pedido pedido, Produto produto, int quantidade, BigDecimal precoVenda) {
         if (pedido.getStatus() != Pedido.Status.ABERTO) {
             System.out.println("Pedido não está aberto para alterações.");
@@ -84,7 +89,6 @@ public class PedidoService {
         }
         ItemPedido item = new ItemPedido(produto, quantidade, precoVenda);
         pedido.adicionarItem(item);
-        System.out.println("Item adicionado ao pedido.");
     }
 
     public void removerItem(Pedido pedido, long idProduto) {
@@ -122,6 +126,16 @@ public class PedidoService {
             System.out.println("Quantidade atualizada.");
         } else {
             System.out.println("Item não encontrado no pedido.");
+        }
+    }
+
+    public void listarPedidos() {
+        if (pedidos.isEmpty()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
+        }
+        for (Pedido p : pedidos) {
+            System.out.println("ID: " + p.getId() + " | Cliente: " + p.getCliente().getNome() + " | Status: " + p.getStatus());
         }
     }
 
@@ -201,4 +215,9 @@ public class PedidoService {
             System.out.println("Erro ao restaurar ID do pedido: " + e.getMessage());
         }
     }
+
+    public boolean listarPedidosVazios() {
+        return pedidos.isEmpty();
+    }
+
 }

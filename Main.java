@@ -21,7 +21,7 @@ public class Main {
         produtoService.carregarProdutosDoArquivo();
         pedidoService.carregarPedidosDoArquivo(clienteService, produtoService);
 
-        int opcao;
+        int opcao = -1;
         do {
             System.out.println("\n==== MENU PRINCIPAL ====");
             System.out.println("1 - Clientes");
@@ -29,7 +29,12 @@ public class Main {
             System.out.println("3 - Pedidos");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
-            opcao = sc.nextInt(); sc.nextLine();
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("Entrada inválida. Digite apenas números.");
+                continue;
+            }
+            opcao = Integer.parseInt(input);
 
             switch (opcao) {
                 case 1 -> menuClientes();
@@ -43,7 +48,7 @@ public class Main {
     }
 
     private static void menuClientes() {
-        int opcao;
+        int opcao = -1;
         do {
             System.out.println("\n--- Menu Clientes ---");
             System.out.println("1 - Cadastrar Cliente");
@@ -51,7 +56,12 @@ public class Main {
             System.out.println("3 - Atualizar Cliente");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
-            opcao = sc.nextInt(); sc.nextLine();
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("Entrada inválida. Digite apenas números.");
+                continue;
+            }
+            opcao = Integer.parseInt(input);
 
             switch (opcao) {
                 case 1 -> cadastrarCliente();
@@ -64,7 +74,7 @@ public class Main {
     }
 
     private static void menuProdutos() {
-        int opcao;
+        int opcao = -1;
         do {
             System.out.println("\n--- Menu Produtos ---");
             System.out.println("1 - Cadastrar Produto");
@@ -72,7 +82,12 @@ public class Main {
             System.out.println("3 - Atualizar Produto");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
-            opcao = sc.nextInt(); sc.nextLine();
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("Entrada inválida. Digite apenas números.");
+                continue;
+            }
+            opcao = Integer.parseInt(input);
 
             switch (opcao) {
                 case 1 -> cadastrarProduto();
@@ -85,7 +100,7 @@ public class Main {
     }
 
     private static void menuPedidos() {
-        int opcao;
+        int opcao = -1;
         do {
             System.out.println("\n--- Menu Pedidos ---");
             System.out.println("1 - Criar Pedido");
@@ -98,7 +113,12 @@ public class Main {
             System.out.println("8 - Mostrar Resumo");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
-            opcao = sc.nextInt(); sc.nextLine();
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("Entrada inválida. Digite apenas números.");
+                continue;
+            }
+            opcao = Integer.parseInt(input);
 
             switch (opcao) {
                 case 1 -> criarPedido();
@@ -116,10 +136,18 @@ public class Main {
     }
 
     private static void cadastrarCliente() {
-    System.out.print("CPF: ");
-    String cpf = sc.nextLine();
+        String cpf;
+        do {
+            System.out.print("CPF (somente números): ");
+            cpf = sc.nextLine().trim();
+            if (!cpf.matches("\\d+")) {
+                System.out.println("CPF inválido. Digite apenas números.");
+                continue;
+            }
+            break;
+        } while (true);
 
-    Optional<Cliente> existente = clienteService.buscarPorCpf(cpf);
+        Optional<Cliente> existente = clienteService.buscarPorCpf(cpf);
         if (existente.isPresent()) {
             System.out.println("Já existe um cliente cadastrado com esse CPF");
             return;
@@ -136,11 +164,11 @@ public class Main {
     private static void atualizarCliente() {
         String cpf;
         do {
-            System.out.print("CPF do cliente: ");
+            System.out.print("CPF do cliente (somente números): ");
             cpf = sc.nextLine().trim();
 
-            if (cpf.isEmpty()) {
-                System.out.println("CPF é obrigatório. Tente novamente.");
+            if (!cpf.matches("\\d+")) {
+                System.out.println("CPF inválido. Digite apenas números.");
                 continue;
             }
 
@@ -176,8 +204,17 @@ public class Main {
     }
 
     private static void atualizarProduto() {
-        System.out.print("ID do produto: ");
-        Long id = sc.nextLong(); sc.nextLine();
+        Long id = null;
+        do {
+            System.out.print("ID do produto (somente números): ");
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("ID inválido. Digite apenas números.");
+                continue;
+            }
+            id = Long.parseLong(input);
+            break;
+        } while (true);
 
         Optional<Produto> produtoOpt = produtoService.buscarPorId(id);
         if (produtoOpt.isEmpty()) {
@@ -198,102 +235,283 @@ public class Main {
         produtoService.atualizarProduto(id, nome, descricao, preco);
     }
 
-
     private static void criarPedido() {
-        System.out.print("CPF do cliente: ");
-        String cpf = sc.nextLine();
-        Optional<Cliente> clienteOpt = clienteService.buscarPorCpf(cpf);
-        if (clienteOpt.isPresent()) {
+        String cpf;
+        do {
+            System.out.print("CPF do cliente (somente números): ");
+            cpf = sc.nextLine().trim();
+
+            if (cpf.isEmpty()) {
+                System.out.println("CPF é obrigatório.");
+                continue;
+            }
+
+            if (!cpf.matches("\\d+")) {
+                System.out.println("CPF inválido. Digite apenas números.");
+                continue;
+            }
+
+            Optional<Cliente> clienteOpt = clienteService.buscarPorCpf(cpf);
+            if (clienteOpt.isEmpty()) {
+                System.out.println("Cliente não encontrado.");
+                return;
+            }
+
             pedidoAtual = pedidoService.criarPedido(clienteOpt.get());
             System.out.println("Pedido #" + pedidoAtual.getId() + " criado para " + clienteOpt.get().getNome());
-        } else {
-            System.out.println("Cliente não encontrado.");
+            break;
+        } while (true);
+
+        // Adição de itens
+        boolean adicionouItem = false;
+        while (true) {
+            System.out.print("Deseja adicionar um item ao pedido? (s/n): ");
+            String resposta = sc.nextLine().trim().toLowerCase();
+            if (resposta.equals("n")) break;
+            if (!resposta.equals("s")) {
+                System.out.println("Resposta inválida. Digite 's' ou 'n'.");
+                continue;
+            }
+
+            Long idProduto = null;
+            do {
+                System.out.print("ID do produto (somente números): ");
+                String input = sc.nextLine().trim();
+                if (!input.matches("\\d+")) {
+                    System.out.println("ID inválido. Digite apenas números.");
+                    continue;
+                }
+                idProduto = Long.parseLong(input);
+                break;
+            } while (true);
+
+            Optional<Produto> produtoOpt = produtoService.buscarPorId(idProduto);
+            if (produtoOpt.isEmpty()) {
+                System.out.println("Produto não encontrado.");
+                continue;
+            }
+
+            System.out.print("Quantidade: ");
+            int qtd = sc.nextInt(); sc.nextLine();
+            if (qtd <= 0) {
+                System.out.println("Quantidade deve ser maior que zero.");
+                continue;
+            }
+
+            System.out.print("Preço de venda: ");
+            BigDecimal precoVenda = sc.nextBigDecimal(); sc.nextLine();
+            if (precoVenda.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Preço de venda deve ser maior que zero.");
+                continue;
+            }
+
+            pedidoService.adicionarItem(pedidoAtual, produtoOpt.get(), qtd, precoVenda);
+            adicionouItem = true;
+            System.out.println("Item adicionado com sucesso.");
+        }
+
+        if (!adicionouItem) {
+            System.out.println("Pedido não pode ser finalizado sem itens. Cancelando criação.");
+            pedidoAtual = null;
         }
     }
 
+    private static Pedido selecionarPedido() {
+        pedidoService.listarPedidos();
+        System.out.print("Digite o ID do pedido desejado: ");
+        String input = sc.nextLine().trim();
+        if (!input.matches("\\d+")) {
+            System.out.println("ID inválido.");
+            return null;
+        }
+        long id = Long.parseLong(input);
+        return pedidoService.buscarPorId(id).orElse(null);
+    }
+
     private static void adicionarItem() {
-        if (pedidoAtual == null) {
-            System.out.println("Crie um pedido primeiro.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
             return;
         }
-        System.out.print("ID do produto: ");
-        Long id = sc.nextLong(); sc.nextLine();
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        Long id = null;
+        do {
+            System.out.print("ID do produto (somente números): ");
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("ID inválido. Digite apenas números.");
+                continue;
+            }
+            id = Long.parseLong(input);
+            break;
+        } while (true);
+
         Optional<Produto> produtoOpt = produtoService.buscarPorId(id);
         if (produtoOpt.isPresent()) {
             System.out.print("Quantidade: ");
-            int qtd = sc.nextInt();
+            int qtd = sc.nextInt(); sc.nextLine();
+            if (qtd <= 0) {
+                System.out.println("Quantidade deve ser maior que zero.");
+                return;
+            }
+
             System.out.print("Preço de venda: ");
             BigDecimal precoVenda = sc.nextBigDecimal(); sc.nextLine();
-            pedidoService.adicionarItem(pedidoAtual, produtoOpt.get(), qtd, precoVenda);
+            if (precoVenda.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Preço de venda deve ser maior que zero.");
+                return;
+            }
+
+            pedidoService.adicionarItem(pedido, produtoOpt.get(), qtd, precoVenda);
         } else {
             System.out.println("Produto não encontrado.");
         }
     }
 
+
     private static void removerItem() {
-        if (pedidoAtual == null) {
-            System.out.println("Crie um pedido primeiro.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
             return;
         }
-        System.out.print("ID do produto a remover: ");
-        Long id = sc.nextLong(); sc.nextLine();
-        pedidoService.removerItem(pedidoAtual, id);
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        Long id = null;
+        do {
+            System.out.print("ID do produto a remover (somente números): ");
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("ID inválido. Digite apenas números.");
+                continue;
+            }
+            id = Long.parseLong(input);
+            break;
+        } while (true);
+
+        pedidoService.removerItem(pedido, id);
     }
 
+
     private static void alterarQuantidade() {
-        if (pedidoAtual == null) {
-            System.out.println("Crie um pedido primeiro.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
             return;
         }
-        System.out.print("ID do produto a alterar: ");
-        Long id = sc.nextLong(); sc.nextLine();
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        Long id = null;
+        do {
+            System.out.print("ID do produto a alterar (somente números): ");
+            String input = sc.nextLine().trim();
+            if (!input.matches("\\d+")) {
+                System.out.println("ID inválido. Digite apenas números.");
+                continue;
+            }
+            id = Long.parseLong(input);
+            break;
+        } while (true);
+
         System.out.print("Nova quantidade: ");
         int qtd = sc.nextInt(); sc.nextLine();
-        pedidoService.alterarQuantidade(pedidoAtual, id, qtd);
+        if (qtd <= 0) {
+            System.out.println("Quantidade deve ser maior que zero.");
+            return;
+        }
+
+        pedidoService.alterarQuantidade(pedido, id, qtd);
     }
 
     private static void finalizarPedido() {
-        if (pedidoAtual != null) {
-            pedidoAtual.finalizar();
-            System.out.println("Pedido concluído.");
-        } else {
-            System.out.println("Nenhum pedido existente.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
         }
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        if (pedido.getItens().isEmpty()) {
+            System.out.println("Pedido não pode ser finalizado sem itens.");
+            return;
+        }
+
+        pedidoService.finalizarPedido(pedido);
+        new Thread(new NotificacaoCriacao(pedido)).start();
     }
 
+
     private static void pagarPedido() {
-        if (pedidoAtual != null) {
-            pedidoService.pagarPedido(pedidoAtual);
-            NotificadorEmail.notificarPagamento(pedidoAtual);
-        } else {
-            System.out.println("Nenhum pedido existente.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
         }
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        pedidoService.pagarPedido(pedido);
+        new Thread(new NotificacaoPagamento(pedido)).start();
     }
 
     private static void entregarPedido() {
-        if (pedidoAtual != null) {
-            pedidoService.entregarPedido(pedidoAtual);
-            NotificadorEmail.notificarEntrega(pedidoAtual);
-        } else {
-            System.out.println("Nenhum pedido existente.");
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
         }
+
+        Pedido pedido = selecionarPedido();
+        if (pedido == null) {
+            System.out.println("Pedido não encontrado.");
+            return;
+        }
+
+        pedidoService.entregarPedido(pedido);
+        new Thread(new NotificacaoEntrega(pedido)).start();
     }
 
-        private static void mostrarResumo() {
-        if (pedidoAtual != null) {
+    private static void mostrarResumo() {
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
+        }
+
+        Pedido pedido = selecionarPedido();
+        if (pedido != null) {
             System.out.println("\n=== Resumo do Pedido ===");
-            System.out.println("Pedido: #" + pedidoAtual.getId());
-            System.out.println("Cliente: " + pedidoAtual.getCliente().getNome() + " | CPF: " + pedidoAtual.getCliente().getCpf());
-            System.out.println("Data: " + DateUtils.formatarData(pedidoAtual.getDataCriacao()));
-            System.out.println("Status: " + pedidoAtual.getStatus());
+            System.out.println("Pedido: #" + pedido.getId());
+            System.out.println("Cliente: " + pedido.getCliente().getNome() + " | CPF: " + pedido.getCliente().getCpf());
+            System.out.println("Data: " + DateUtils.formatarData(pedido.getDataCriacao()));
+            System.out.println("Status: " + pedido.getStatus());
             System.out.println("Itens:");
-            pedidoAtual.getItens().forEach(item ->
+            pedido.getItens().forEach(item ->
                 System.out.println("- " + item.getProduto().getNome() +
                         " | Qtd: " + item.getQuantidade() +
                         " | Preço: R$" + item.getPrecoVenda()));
-            System.out.printf("Valor Total: R$%.2f%n", pedidoAtual.getValorTotal());
+            System.out.printf("Valor Total: R$%.2f%n", pedido.getValorTotal());
         } else {
-            System.out.println("Nenhum pedido existente.");
+            System.out.println("Pedido não encontrado.");
         }
     }
 }
