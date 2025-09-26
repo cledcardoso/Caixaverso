@@ -25,7 +25,6 @@ public class ProdutoService {
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(";");
                 if (partes.length == 4) {
-                    Long id = Long.parseLong(partes[0]);
                     String nome = partes[1];
                     String descricao = partes[2];
                     BigDecimal preco = new BigDecimal(partes[3]);
@@ -49,7 +48,7 @@ public class ProdutoService {
 
     public Optional<Produto> buscarPorId(Long id) {
         return produtos.stream()
-                .filter(p -> p.getId().equals(id))
+                .filter(p -> p.getId() == id)
                 .findFirst();
     }
 

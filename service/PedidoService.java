@@ -10,7 +10,6 @@ import java.util.List;
 public class PedidoService {
     private final List<Pedido> pedidos = new ArrayList<>();
     private final String caminhoArquivo;
-    private static long contadorPedidos = 1;
 
     public PedidoService(String caminhoArquivo) {
         this.caminhoArquivo = caminhoArquivo;
@@ -22,6 +21,8 @@ public class PedidoService {
 
         try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
             String linha;
+            long maiorId = 0;
+
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(";");
                 if (partes.length >= 4) {
@@ -32,14 +33,15 @@ public class PedidoService {
                     Cliente cliente = clienteService.buscarPorCpf(cpf).orElse(null);
                     if (cliente == null) continue;
 
-                    Pedido pedido = new Pedido(id, cliente);
+                    Pedido pedido = new Pedido(cliente);
+                    restaurarId(pedido, id);
                     pedido.setStatus(status);
 
                     if (partes.length == 5) {
                         String[] itens = partes[4].split("\\|");
                         for (String itemStr : itens) {
                             String[] itemPartes = itemStr.split(",");
-                            Long idProduto = Long.parseLong(itemPartes[0]);
+                            long idProduto = Long.parseLong(itemPartes[0]);
                             int qtd = Integer.parseInt(itemPartes[1]);
                             BigDecimal preco = new BigDecimal(itemPartes[2]);
 
@@ -51,16 +53,18 @@ public class PedidoService {
                     }
 
                     pedidos.add(pedido);
-                    contadorPedidos = Math.max(contadorPedidos, id + 1);
+                    if (id > maiorId) maiorId = id;
                 }
             }
+
+            Pedido.atualizarContador(maiorId);
         } catch (IOException e) {
             System.out.println("Erro ao carregar pedidos: " + e.getMessage());
         }
     }
 
     public Pedido criarPedido(Cliente cliente) {
-        Pedido pedido = new Pedido(contadorPedidos++, cliente);
+        Pedido pedido = new Pedido(cliente);
         pedidos.add(pedido);
         return pedido;
     }
@@ -75,9 +79,9 @@ public class PedidoService {
         System.out.println("Item adicionado ao pedido.");
     }
 
-    public void removerItem(Pedido pedido, Long idProduto) {
+    public void removerItem(Pedido pedido, long idProduto) {
         ItemPedido item = pedido.getItens().stream()
-                .filter(i -> i.getProduto().getId().equals(idProduto))
+                .filter(i -> i.getProduto().getId() == idProduto)
                 .findFirst()
                 .orElse(null);
 
@@ -89,9 +93,9 @@ public class PedidoService {
         }
     }
 
-    public void alterarQuantidade(Pedido pedido, Long idProduto, int novaQuantidade) {
+    public void alterarQuantidade(Pedido pedido, long idProduto, int novaQuantidade) {
         ItemPedido item = pedido.getItens().stream()
-                .filter(i -> i.getProduto().getId().equals(idProduto))
+                .filter(i -> i.getProduto().getId() == idProduto)
                 .findFirst()
                 .orElse(null);
 
@@ -133,6 +137,16 @@ public class PedidoService {
             bw.newLine();
         } catch (IOException e) {
             System.out.println("Erro ao salvar pedido: " + e.getMessage());
+        }
+    }
+
+    private void restaurarId(Pedido pedido, long id) {
+        try {
+            var field = Pedido.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.setLong(pedido, id);
+        } catch (Exception e) {
+            System.out.println("Erro ao restaurar ID do pedido: " + e.getMessage());
         }
     }
 }

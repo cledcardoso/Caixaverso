@@ -21,25 +21,31 @@ public class ClienteService {
 
         try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
             String linha;
+            long maiorId = 0;
+
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(";");
-                if (partes.length == 3) {
-                    String cpf = partes[0];
-                    String nome = partes[1];
-                    String email = partes[2];
-                    clientes.add(new Cliente(cpf, nome, email));
+                if (partes.length == 4) {
+                    long id = Long.parseLong(partes[0]);
+                    String cpf = partes[1];
+                    String nome = partes[2];
+                    String email = partes[3];
+
+                    Cliente cliente = new Cliente(cpf, nome, email);
+                    restaurarId(cliente, id);
+                    clientes.add(cliente);
+
+                    if (id > maiorId) maiorId = id;
                 }
             }
+
+            Cliente.atualizarContador(maiorId);
         } catch (IOException e) {
             System.out.println("Erro ao carregar clientes: " + e.getMessage());
         }
     }
 
     public void cadastrarCliente(Cliente cliente) {
-        if (buscarPorCpf(cliente.getCpf()).isPresent()) {
-            System.out.println("Cliente com CPF já cadastrado.");
-            return;
-        }
         clientes.add(cliente);
         salvarClienteNoArquivo(cliente);
         System.out.println("Cliente cadastrado com sucesso!");
@@ -66,12 +72,12 @@ public class ClienteService {
 
     public void listarClientes() {
         System.out.println("\n=== Lista de Clientes ===");
-        clientes.forEach(c -> System.out.println("CPF: " + c.getCpf() + " | Nome: " + c.getNome() + " | Email: " + c.getEmail()));
+        clientes.forEach(c -> System.out.println("ID: " + c.getId() + " | CPF: " + c.getCpf() + " | Nome: " + c.getNome() + " | Email: " + c.getEmail()));
     }
 
     private void salvarClienteNoArquivo(Cliente cliente) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
-            bw.write(cliente.getCpf() + ";" + cliente.getNome() + ";" + cliente.getEmail());
+            bw.write(cliente.getId() + ";" + cliente.getCpf() + ";" + cliente.getNome() + ";" + cliente.getEmail());
             bw.newLine();
         } catch (IOException e) {
             System.out.println("Erro ao salvar cliente: " + e.getMessage());
@@ -81,11 +87,21 @@ public class ClienteService {
     private void salvarTodosClientes() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo))) {
             for (Cliente cliente : clientes) {
-                bw.write(cliente.getCpf() + ";" + cliente.getNome() + ";" + cliente.getEmail());
+                bw.write(cliente.getId() + ";" + cliente.getCpf() + ";" + cliente.getNome() + ";" + cliente.getEmail());
                 bw.newLine();
             }
         } catch (IOException e) {
             System.out.println("Erro ao atualizar clientes: " + e.getMessage());
+        }
+    }
+
+    private void restaurarId(Cliente cliente, long id) {
+        try {
+            var field = Cliente.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.setLong(cliente, id);
+        } catch (Exception e) {
+            System.out.println("Erro ao restaurar ID do cliente: " + e.getMessage());
         }
     }
 }
