@@ -21,25 +21,18 @@ public class Main {
 
         int opcao;
         do {
-            exibirMenu();
-            opcao = sc.nextInt();
-            sc.nextLine(); // Limpa o buffer
+            System.out.println("\n==== MENU PRINCIPAL ====");
+            System.out.println("1 - Clientes");
+            System.out.println("2 - Produtos");
+            System.out.println("3 - Pedidos");
+            System.out.println("0 - Sair");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt(); sc.nextLine();
 
             switch (opcao) {
-                case 1 -> cadastrarCliente();
-                case 2 -> clienteService.listarClientes();
-                case 3 -> atualizarCliente();
-                case 4 -> cadastrarProduto();
-                case 5 -> produtoService.listarProdutos();
-                case 6 -> atualizarProduto();
-                case 7 -> criarPedido();
-                case 8 -> adicionarItem();
-                case 9 -> removerItem();
-                case 10 -> alterarQuantidade();
-                case 11 -> finalizarPedido();
-                case 12 -> pagarPedido();
-                case 13 -> entregarPedido();
-                case 14 -> mostrarResumo();
+                case 1 -> menuClientes();
+                case 2 -> menuProdutos();
+                case 3 -> menuPedidos();
                 case 0 -> System.out.println("Encerrando o sistema...");
                 default -> System.out.println("Opção inválida.");
             }
@@ -47,29 +40,89 @@ public class Main {
         sc.close();
     }
 
-    private static void exibirMenu() {
-        System.out.println("\n==== MENU PRINCIPAL ====");
-        System.out.println("1 - Cadastrar Cliente");
-        System.out.println("2 - Listar Clientes");
-        System.out.println("3 - Atualizar Cliente");
-        System.out.println("4 - Cadastrar Produto");
-        System.out.println("5 - Listar Produtos");
-        System.out.println("6 - Atualizar Produto");
-        System.out.println("7 - Criar Pedido");
-        System.out.println("8 - Adicionar Item ao Pedido");
-        System.out.println("9 - Remover Item do Pedido");
-        System.out.println("10 - Alterar Quantidade de Item");
-        System.out.println("11 - Finalizar Pedido");
-        System.out.println("12 - Pagar Pedido");
-        System.out.println("13 - Entregar Pedido");
-        System.out.println("14 - Mostrar Resumo do Pedido");
-        System.out.println("0 - Sair");
-        System.out.print("Escolha uma opção: ");
+    private static void menuClientes() {
+        int opcao;
+        do {
+            System.out.println("\n--- Menu Clientes ---");
+            System.out.println("1 - Cadastrar Cliente");
+            System.out.println("2 - Listar Clientes");
+            System.out.println("3 - Atualizar Cliente");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt(); sc.nextLine();
+
+            switch (opcao) {
+                case 1 -> cadastrarCliente();
+                case 2 -> clienteService.listarClientes();
+                case 3 -> atualizarCliente();
+                case 0 -> System.out.println("Voltando ao menu principal...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    private static void menuProdutos() {
+        int opcao;
+        do {
+            System.out.println("\n--- Menu Produtos ---");
+            System.out.println("1 - Cadastrar Produto");
+            System.out.println("2 - Listar Produtos");
+            System.out.println("3 - Atualizar Produto");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt(); sc.nextLine();
+
+            switch (opcao) {
+                case 1 -> cadastrarProduto();
+                case 2 -> produtoService.listarProdutos();
+                case 3 -> atualizarProduto();
+                case 0 -> System.out.println("Voltando ao menu principal...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    private static void menuPedidos() {
+        int opcao;
+        do {
+            System.out.println("\n--- Menu Pedidos ---");
+            System.out.println("1 - Criar Pedido");
+            System.out.println("2 - Adicionar Item");
+            System.out.println("3 - Remover Item");
+            System.out.println("4 - Alterar Quantidade");
+            System.out.println("5 - Finalizar Pedido");
+            System.out.println("6 - Pagar Pedido");
+            System.out.println("7 - Entregar Pedido");
+            System.out.println("8 - Mostrar Resumo");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt(); sc.nextLine();
+
+            switch (opcao) {
+                case 1 -> criarPedido();
+                case 2 -> adicionarItem();
+                case 3 -> removerItem();
+                case 4 -> alterarQuantidade();
+                case 5 -> finalizarPedido();
+                case 6 -> pagarPedido();
+                case 7 -> entregarPedido();
+                case 8 -> mostrarResumo();
+                case 0 -> System.out.println("Voltando ao menu principal...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
     }
 
     private static void cadastrarCliente() {
-        System.out.print("CPF: ");
-        String cpf = sc.nextLine();
+    System.out.print("CPF: ");
+    String cpf = sc.nextLine();
+
+    Optional<Cliente> existente = clienteService.buscarPorCpf(cpf);
+        if (existente.isPresent()) {
+            System.out.println("Já existe um cliente cadastrado com esse CPF");
+            return;
+        }
+
         System.out.print("Nome: ");
         String nome = sc.nextLine();
         System.out.print("Email: ");
@@ -79,13 +132,34 @@ public class Main {
     }
 
     private static void atualizarCliente() {
-        System.out.print("CPF do cliente: ");
-        String cpf = sc.nextLine();
-        System.out.print("Novo nome: ");
-        String nome = sc.nextLine();
-        System.out.print("Novo email: ");
-        String email = sc.nextLine();
-        clienteService.atualizarCliente(cpf, nome, email);
+        String cpf;
+        do {
+            System.out.print("CPF do cliente: ");
+            cpf = sc.nextLine().trim();
+
+            if (cpf.isEmpty()) {
+                System.out.println("CPF é obrigatório. Tente novamente.");
+                continue;
+            }
+
+            Optional<Cliente> clienteOpt = clienteService.buscarPorCpf(cpf);
+            if (clienteOpt.isEmpty()) {
+                System.out.println("Cliente com CPF " + cpf + " não encontrado. Atualização cancelada.");
+                return;
+            }
+
+            Cliente cliente = clienteOpt.get();
+            System.out.println("Cliente atual: " + cliente.getNome() + " | Email: " + cliente.getEmail());
+
+            System.out.print("Novo nome: ");
+            String nome = sc.nextLine();
+            System.out.print("Novo email: ");
+            String email = sc.nextLine();
+
+            clienteService.atualizarCliente(cpf, nome, email);
+            break;
+
+        } while (true);
     }
 
     private static void cadastrarProduto() {
@@ -102,14 +176,26 @@ public class Main {
     private static void atualizarProduto() {
         System.out.print("ID do produto: ");
         Long id = sc.nextLong(); sc.nextLine();
+
+        Optional<Produto> produtoOpt = produtoService.buscarPorId(id);
+        if (produtoOpt.isEmpty()) {
+            System.out.println("Produto com ID " + id + " não encontrado. Atualização cancelada.");
+            return;
+        }
+
+        Produto produto = produtoOpt.get();
+        System.out.println("Produto atual: " + produto.getNome() + " | Preço: R$" + produto.getPrecoBase());
+
         System.out.print("Novo nome: ");
         String nome = sc.nextLine();
         System.out.print("Nova descrição: ");
         String descricao = sc.nextLine();
         System.out.print("Novo preço: ");
         BigDecimal preco = sc.nextBigDecimal(); sc.nextLine();
+
         produtoService.atualizarProduto(id, nome, descricao, preco);
     }
+
 
     private static void criarPedido() {
         System.out.print("CPF do cliente: ");
@@ -191,7 +277,7 @@ public class Main {
         }
     }
 
-    private static void mostrarResumo() {
+        private static void mostrarResumo() {
         if (pedidoAtual != null) {
             System.out.println("\n=== Resumo do Pedido ===");
             System.out.println("Pedido: #" + pedidoAtual.getId());
@@ -203,7 +289,7 @@ public class Main {
                 System.out.println("- " + item.getProduto().getNome() +
                         " | Qtd: " + item.getQuantidade() +
                         " | Preço: R$" + item.getPrecoVenda()));
-            System.out.println("Valor Total: R$" + pedidoAtual.getValorTotal());
+            System.out.printf("Valor Total: R$%.2f%n", pedidoAtual.getValorTotal());
         } else {
             System.out.println("Nenhum pedido existente.");
         }

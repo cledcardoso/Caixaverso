@@ -46,6 +46,12 @@ public class ClienteService {
     }
 
     public void cadastrarCliente(Cliente cliente) {
+        Optional<Cliente> existente = buscarPorCpf(cliente.getCpf());
+        if (existente.isPresent()) {
+            System.out.println("Erro: já existe um cliente com esse CPF.");
+            return;
+        }
+
         clientes.add(cliente);
         salvarClienteNoArquivo(cliente);
         System.out.println("Cliente cadastrado com sucesso!");
