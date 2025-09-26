@@ -30,6 +30,11 @@ public class Pedido {
     public Status getStatus() { return status; }
     public List<ItemPedido> getItens() { return itens; }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+
     public void adicionarItem(ItemPedido item) {
         itens.add(item);
     }

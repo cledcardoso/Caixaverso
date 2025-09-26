@@ -9,12 +9,16 @@ import java.util.Scanner;
 
 public class Main {
     private static final Scanner sc = new Scanner(System.in);
-    private static final ClienteService clienteService = new ClienteService();
-    private static final ProdutoService produtoService = new ProdutoService();
-    private static final PedidoService pedidoService = new PedidoService();
+    private static final ClienteService clienteService = new ClienteService("clientes.csv");
+    private static final ProdutoService produtoService = new ProdutoService("produtos.csv");
+    private static final PedidoService pedidoService = new PedidoService("pedidos.csv");
     private static Pedido pedidoAtual;
 
     public static void main(String[] args) {
+        clienteService.carregarClientesDoArquivo();
+        produtoService.carregarProdutosDoArquivo();
+        pedidoService.carregarPedidosDoArquivo(clienteService, produtoService);
+
         int opcao;
         do {
             exibirMenu();
@@ -36,7 +40,7 @@ public class Main {
                 case 12 -> pagarPedido();
                 case 13 -> entregarPedido();
                 case 14 -> mostrarResumo();
-                case 0 -> System.out.println("Saindo do sistema...");
+                case 0 -> System.out.println("Encerrando o sistema...");
                 default -> System.out.println("Opção inválida.");
             }
         } while (opcao != 0);
@@ -70,12 +74,12 @@ public class Main {
         String nome = sc.nextLine();
         System.out.print("Email: ");
         String email = sc.nextLine();
-        Cliente cliente = new Cliente(nome, email, cpf);
+        Cliente cliente = new Cliente(cpf, nome, email);
         clienteService.cadastrarCliente(cliente);
     }
 
     private static void atualizarCliente() {
-        System.out.print("CPF do cliente a atualizar: ");
+        System.out.print("CPF do cliente: ");
         String cpf = sc.nextLine();
         System.out.print("Novo nome: ");
         String nome = sc.nextLine();
@@ -98,7 +102,7 @@ public class Main {
     }
 
     private static void atualizarProduto() {
-        System.out.print("ID do produto a atualizar: ");
+        System.out.print("ID do produto: ");
         Long id = sc.nextLong(); sc.nextLine();
         System.out.print("Novo nome: ");
         String nome = sc.nextLine();
