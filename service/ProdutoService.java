@@ -53,17 +53,23 @@ public class ProdutoService {
     }
 
     public void atualizarProduto(Long id, String novoNome, String novaDescricao, BigDecimal novoPreco) {
-        Optional<Produto> produtoOpt = buscarPorId(id);
-        if (produtoOpt.isPresent()) {
-            Produto produto = produtoOpt.get();
-            produto.setNome(novoNome);
-            produto.setDescricao(novaDescricao);
-            produto.setPrecoBase(novoPreco);
-            salvarTodosProdutos();
-            System.out.println("Produto atualizado com sucesso!");
-        } else {
-            System.out.println("Produto não encontrado.");
+        if (id == null || id <= 0) {
+            System.out.println("Erro: ID do produto é obrigatório e deve ser maior que zero.");
+            return;
         }
+
+        Optional<Produto> produtoOpt = buscarPorId(id);
+        if (produtoOpt.isEmpty()) {
+            System.out.println("Produto com ID " + id + " não encontrado. Atualização cancelada.");
+            return;
+        }
+
+        Produto produto = produtoOpt.get();
+        produto.setNome(novoNome);
+        produto.setDescricao(novaDescricao);
+        produto.setPrecoBase(novoPreco);
+        salvarTodosProdutos();
+        System.out.println("Produto atualizado com sucesso!");
     }
 
     public void listarProdutos() {

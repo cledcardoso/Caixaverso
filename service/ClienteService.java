@@ -64,16 +64,22 @@ public class ClienteService {
     }
 
     public void atualizarCliente(String cpf, String novoNome, String novoEmail) {
-        Optional<Cliente> clienteOpt = buscarPorCpf(cpf);
-        if (clienteOpt.isPresent()) {
-            Cliente cliente = clienteOpt.get();
-            cliente.setNome(novoNome);
-            cliente.setEmail(novoEmail);
-            salvarTodosClientes();
-            System.out.println("Cliente atualizado com sucesso!");
-        } else {
-            System.out.println("Cliente não encontrado.");
+        if (cpf == null || cpf.trim().isEmpty()) {
+            System.out.println("Erro: CPF é obrigatório para atualizar um cliente.");
+            return;
         }
+
+        Optional<Cliente> clienteOpt = buscarPorCpf(cpf);
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Cliente com CPF " + cpf + " não encontrado. Atualização cancelada.");
+            return;
+        }
+
+        Cliente cliente = clienteOpt.get();
+        cliente.setNome(novoNome);
+        cliente.setEmail(novoEmail);
+        salvarTodosClientes();
+        System.out.println("Cliente atualizado com sucesso!");
     }
 
     public void listarClientes() {
