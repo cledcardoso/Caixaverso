@@ -14,8 +14,7 @@ public class Main {
     private static final ClienteService clienteService = new ClienteService("clientes.csv");
     private static final ProdutoService produtoService = new ProdutoService("produtos.csv");
     private static final PedidoService pedidoService = new PedidoService("pedidos.csv");
-    private static Pedido pedidoAtual;
-
+    
     public static void main(String[] args) {
         clienteService.carregarClientesDoArquivo();
         produtoService.carregarProdutosDoArquivo();
@@ -118,7 +117,12 @@ public class Main {
                 System.out.println("Entrada inválida. Digite apenas números.");
                 continue;
             }
-            opcao = Integer.parseInt(input);
+            try {
+                opcao = Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Digite uma opção numérica do menu.");
+                return;
+            }
 
             switch (opcao) {
                 case 1 -> criarPedido();
@@ -238,7 +242,94 @@ public class Main {
         System.out.println("Produto atualizado com sucesso.");
     }
 
-    private static void criarPedido() {
+        private static void criarPedido() {
+        String cpf;
+        Optional<Cliente> clienteOpt;
+
+        // Validação do CPF e busca do cliente
+        do {
+            System.out.print("CPF do cliente (somente números): ");
+            cpf = sc.nextLine().trim();
+
+            if (cpf.isEmpty()) {
+                System.out.println("CPF é obrigatório.");
+                continue;
+            }
+
+            if (!cpf.matches("\\d+")) {
+                System.out.println("CPF inválido. Digite apenas números.");
+                continue;
+            }
+
+            clienteOpt = clienteService.buscarPorCpf(cpf);
+            if (clienteOpt.isEmpty()) {
+                System.out.println("Cliente não encontrado.");
+                return;
+            }
+
+            break;
+        } while (true);
+
+        Cliente cliente = clienteOpt.get();
+        Pedido pedido = new Pedido(cliente); // ✅ ainda não salva
+
+        // Adição de itens
+        boolean adicionouItem = false;
+        while (true) {
+            System.out.print("Deseja adicionar um item ao pedido? (s/n): ");
+            String resposta = sc.nextLine().trim().toLowerCase();
+            if (resposta.equals("n")) break;
+            if (!resposta.equals("s")) {
+                System.out.println("Resposta inválida. Digite 's' ou 'n'.");
+                continue;
+            }
+
+            Long idProduto = null;
+            do {
+                System.out.print("ID do produto (somente números): ");
+                String input = sc.nextLine().trim();
+                if (!input.matches("\\d+")) {
+                    System.out.println("ID inválido. Digite apenas números.");
+                    continue;
+                }
+                idProduto = Long.parseLong(input);
+                break;
+            } while (true);
+
+            Optional<Produto> produtoOpt = produtoService.buscarPorId(idProduto);
+            if (produtoOpt.isEmpty()) {
+                System.out.println("Produto não encontrado.");
+                continue;
+            }
+
+            System.out.print("Quantidade: ");
+            int qtd = sc.nextInt(); sc.nextLine();
+            if (qtd <= 0) {
+                System.out.println("Quantidade deve ser maior que zero.");
+                continue;
+            }
+
+            System.out.print("Preço de venda: ");
+            BigDecimal precoVenda = sc.nextBigDecimal(); sc.nextLine();
+            if (precoVenda.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Preço de venda deve ser maior que zero.");
+                continue;
+            }
+
+            pedidoService.adicionarItem(pedido, produtoOpt.get(), qtd, precoVenda);
+            adicionouItem = true;
+            System.out.println("Item adicionado com sucesso.");
+        }
+        
+        if (!adicionouItem) {
+            System.out.println("Pedido não pode ser criado sem itens. Cancelando operação.");
+            return;
+        }
+    
+        pedidoService.salvarPedido(pedido);
+        System.out.println("Pedido #" + pedido.getId() + " criado para " + cliente.getNome());
+    }
+    /*private static void criarPedido() {
         String cpf;
         do {
             System.out.print("CPF do cliente (somente números): ");
@@ -317,7 +408,7 @@ public class Main {
             System.out.println("Pedido não pode ser finalizado sem itens. Cancelando criação.");
             pedidoAtual = null;
         }
-    }
+    }*/
 
     private static Pedido selecionarPedido() {
         pedidoService.listarPedidos();
@@ -458,9 +549,12 @@ public class Main {
             return;
         }
 
-        pedidoService.finalizarPedido(pedido);
-        System.out.println("Pedido finalizado.");
-        new Thread(new NotificacaoCriacao(pedido)).start();
+        if (pedidoService.finalizarPedido(pedido)) {
+            System.out.println("Pedido finalizado.");
+            new Thread(new NotificacaoCriacao(pedido)).start();
+        } else {
+            System.out.println("Falha ao finalizar o pedido.");
+        }
     }
 
     private static void pagarPedido() {
@@ -475,9 +569,12 @@ public class Main {
             return;
         }
 
-        pedidoService.pagarPedido(pedido);
-        System.out.println("Pedido pago.");
-        new Thread(new NotificacaoPagamento(pedido)).start();
+        if (pedidoService.pagarPedido(pedido)) {
+            System.out.println("Pedido pago.");
+            new Thread(new NotificacaoPagamento(pedido)).start();
+        } else {
+            System.out.println("Falha ao realizar o pagamento.");
+        }
     }
 
     private static void entregarPedido() {
@@ -492,9 +589,12 @@ public class Main {
             return;
         }
 
-        pedidoService.entregarPedido(pedido);
-        System.out.println("Pedido entregue.");
-        new Thread(new NotificacaoEntrega(pedido)).start();
+        if (pedidoService.entregarPedido(pedido)) {
+            System.out.println("Pedido entregue.");
+            new Thread(new NotificacaoEntrega(pedido)).start();
+        } else {
+    System.out.println("Falha ao entregar o pedido.");
+}
     }
 
     private static void mostrarResumo() {

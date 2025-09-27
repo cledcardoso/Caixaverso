@@ -74,6 +74,11 @@ public class PedidoService {
         return pedido;
     }
 
+    public void salvarPedido(Pedido pedido) {
+        pedidos.add(pedido); // adiciona à lista interna
+        salvarPedidoNoArquivo(pedido); // persiste no CSV
+    }
+
     public Optional<Pedido> buscarPorId(long id) {
         return pedidos.stream().filter(p -> p.getId() == id).findFirst();
     }
@@ -139,50 +144,47 @@ public class PedidoService {
         }
     }
 
-    public void finalizarPedido(Pedido pedido) {
+    public boolean finalizarPedido(Pedido pedido) {
         if (pedido.getStatus() != Pedido.Status.ABERTO) {
             System.out.println("Pedido já foi finalizado ou está em outro estado.");
-            return;
+            return false;
         }
 
         if (pedido.getItens().isEmpty()) {
             System.out.println("Erro: pedido não pode ser finalizado sem itens.");
-            return;
+            return false;
         }
 
         if (pedido.getValorTotal().compareTo(BigDecimal.ZERO) <= 0) {
             System.out.println("Erro: valor total do pedido deve ser maior que zero.");
-            return;
+            return false;
         }
 
         pedido.setStatus(Pedido.Status.AGUARDANDO_PAGAMENTO);
         salvarPedidoNoArquivo(pedido);
-        new Thread(new NotificacaoCriacao(pedido)).start();
-        System.out.println("Pedido finalizado e aguardando pagamento.");
+        return true;
     }
 
-    public void pagarPedido(Pedido pedido) {
+    public boolean pagarPedido(Pedido pedido) {
         if (pedido.getStatus() != Pedido.Status.AGUARDANDO_PAGAMENTO) {
             System.out.println("Erro: pagamento só pode ser feito em pedidos aguardando pagamento.");
-            return;
+            return false;
         }
 
         pedido.setStatus(Pedido.Status.PAGO);
         salvarPedidoNoArquivo(pedido);
-        new Thread(new NotificacaoPagamento(pedido)).start();
-        System.out.println("Pedido pago.");
+        return true;
     }
 
-    public void entregarPedido(Pedido pedido) {
+    public boolean entregarPedido(Pedido pedido) {
         if (pedido.getStatus() != Pedido.Status.PAGO) {
             System.out.println("Erro: pedido só pode ser entregue após pagamento.");
-            return;
+            return false;
         }
 
         pedido.setStatus(Pedido.Status.FINALIZADO);
         salvarPedidoNoArquivo(pedido);
-        new Thread(new NotificacaoEntrega(pedido)).start();
-        System.out.println("Pedido entregue.");
+        return true;
     }
 
     private void salvarPedidoNoArquivo(Pedido pedido) {
