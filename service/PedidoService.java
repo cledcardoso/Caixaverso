@@ -2,12 +2,10 @@ package service;
 
 import model.*;
 
-import util.NotificacaoCriacao;
-import util.NotificacaoPagamento;
-import util.NotificacaoEntrega;
-
 import java.io.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,10 +13,15 @@ import java.util.Optional;
 public class PedidoService {
     private final List<Pedido> pedidos = new ArrayList<>();
     private final String caminhoArquivo;
+    private final ClienteService clienteService;
+    private final ProdutoService produtoService;
 
-    public PedidoService(String caminhoArquivo) {
-        this.caminhoArquivo = caminhoArquivo;
-    }
+    public PedidoService(ClienteService clienteService, ProdutoService produtoService, String caminhoArquivo) {
+    this.clienteService = clienteService;
+    this.produtoService = produtoService;
+    this.caminhoArquivo = caminhoArquivo;
+}
+
 
     public void carregarPedidosDoArquivo(ClienteService clienteService, ProdutoService produtoService) {
         File arquivo = new File(caminhoArquivo);
@@ -30,10 +33,11 @@ public class PedidoService {
 
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(";");
-                if (partes.length >= 4) {
+                if (partes.length >= 8) {
                     long id = Long.parseLong(partes[0]);
                     String cpf = partes[1];
                     Pedido.Status status = Pedido.Status.valueOf(partes[2]);
+                    LocalDateTime dataCriacao = LocalDateTime.parse(partes[3]);
 
                     Cliente cliente = clienteService.buscarPorCpf(cpf).orElse(null);
                     if (cliente == null) continue;
@@ -41,18 +45,25 @@ public class PedidoService {
                     Pedido pedido = new Pedido(cliente);
                     restaurarId(pedido, id);
                     pedido.setStatus(status);
+                    pedido.setDataCriacao(dataCriacao);
 
-                    if (partes.length == 5) {
-                        String[] itens = partes[4].split("\\|");
+                    if (!partes[4].isEmpty()) pedido.setDataFinalizacao(LocalDateTime.parse(partes[4]));
+                    if (!partes[5].isEmpty()) pedido.setDataPagamento(LocalDateTime.parse(partes[5]));
+                    if (!partes[6].isEmpty()) pedido.setDataEntrega(LocalDateTime.parse(partes[6]));
+
+                    if (partes.length >= 8 && !partes[7].isEmpty()) {
+                        String[] itens = partes[7].split("\\|");
                         for (String itemStr : itens) {
                             String[] itemPartes = itemStr.split(",");
-                            long idProduto = Long.parseLong(itemPartes[0]);
-                            int qtd = Integer.parseInt(itemPartes[1]);
-                            BigDecimal preco = new BigDecimal(itemPartes[2]);
+                            if (itemPartes.length == 3) {
+                                long idProduto = Long.parseLong(itemPartes[0]);
+                                int qtd = Integer.parseInt(itemPartes[1]);
+                                BigDecimal preco = new BigDecimal(itemPartes[2]);
 
-                            Produto produto = produtoService.buscarPorId(idProduto).orElse(null);
-                            if (produto != null) {
-                                pedido.adicionarItem(new ItemPedido(produto, qtd, preco));
+                                Produto produto = produtoService.buscarPorId(idProduto).orElse(null);
+                                if (produto != null) {
+                                    pedido.adicionarItem(new ItemPedido(produto, qtd, preco));
+                                }
                             }
                         }
                     }
@@ -63,10 +74,70 @@ public class PedidoService {
             }
 
             Pedido.atualizarContador(maiorId);
-        } catch (IOException e) {
+        } catch (IOException | NumberFormatException | DateTimeParseException e) {
             System.out.println("Erro ao carregar pedidos: " + e.getMessage());
         }
     }
+
+    public List<Pedido> carregarPedidosDoArquivoSimples(ClienteService clienteService, ProdutoService produtoService) {
+        List<Pedido> pedidosCarregados = new ArrayList<>();
+        File arquivo = new File(caminhoArquivo);
+        if (!arquivo.exists()) return pedidosCarregados;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha;
+            long maiorId = 0;
+
+            while ((linha = br.readLine()) != null) {
+                String[] partes = linha.split(";");
+                if (partes.length >= 8) {
+                    long id = Long.parseLong(partes[0]);
+                    String cpf = partes[1];
+                    Pedido.Status status = Pedido.Status.valueOf(partes[2]);
+                    LocalDateTime dataCriacao = LocalDateTime.parse(partes[3]);
+
+                    Cliente cliente = clienteService.buscarPorCpf(cpf).orElse(null);
+                    if (cliente == null) continue;
+
+                    Pedido pedido = new Pedido(cliente);
+                    restaurarId(pedido, id);
+                    pedido.setStatus(status);
+                    pedido.setDataCriacao(dataCriacao);
+
+                    if (!partes[4].isEmpty()) pedido.setDataFinalizacao(LocalDateTime.parse(partes[4]));
+                    if (!partes[5].isEmpty()) pedido.setDataPagamento(LocalDateTime.parse(partes[5]));
+                    if (!partes[6].isEmpty()) pedido.setDataEntrega(LocalDateTime.parse(partes[6]));
+
+                    if (!partes[7].isEmpty()) {
+                        String[] itens = partes[7].split("\\|");
+                        for (String itemStr : itens) {
+                            String[] itemPartes = itemStr.split(",");
+                            if (itemPartes.length == 3) {
+                                long idProduto = Long.parseLong(itemPartes[0]);
+                                int qtd = Integer.parseInt(itemPartes[1]);
+                                BigDecimal preco = new BigDecimal(itemPartes[2]);
+
+                                Produto produto = produtoService.buscarPorId(idProduto).orElse(null);
+                                if (produto != null) {
+                                    pedido.adicionarItem(new ItemPedido(produto, qtd, preco));
+                                }
+                            }
+                        }
+                    }
+
+                    pedidosCarregados.add(pedido);
+                    if (id > maiorId) maiorId = id;
+                }
+            }
+
+            Pedido.atualizarContador(maiorId);
+        } catch (IOException | NumberFormatException | DateTimeParseException e) {
+            System.out.println("Erro ao carregar pedidos: " + e.getMessage());
+        }
+
+        return pedidosCarregados;
+    }
+
 
     public Pedido criarPedido(Cliente cliente) {
         Pedido pedido = new Pedido(cliente);
@@ -76,7 +147,7 @@ public class PedidoService {
 
     public void salvarPedido(Pedido pedido) {
         pedidos.add(pedido); // adiciona à lista interna
-        salvarPedidoNoArquivo(pedido); // persiste no CSV
+        salvarPedidoNoArquivo(pedido, clienteService, produtoService); // persiste no CSV
     }
 
     public Optional<Pedido> buscarPorId(long id) {
@@ -161,7 +232,8 @@ public class PedidoService {
         }
 
         pedido.setStatus(Pedido.Status.AGUARDANDO_PAGAMENTO);
-        salvarPedidoNoArquivo(pedido);
+        pedido.setDataFinalizacao(LocalDateTime.now()); //
+        salvarPedidoNoArquivo(pedido, clienteService, produtoService);
         return true;
     }
 
@@ -172,9 +244,11 @@ public class PedidoService {
         }
 
         pedido.setStatus(Pedido.Status.PAGO);
-        salvarPedidoNoArquivo(pedido);
+        pedido.setDataPagamento(LocalDateTime.now()); //
+        salvarPedidoNoArquivo(pedido, clienteService, produtoService);
         return true;
     }
+
 
     public boolean entregarPedido(Pedido pedido) {
         if (pedido.getStatus() != Pedido.Status.PAGO) {
@@ -183,26 +257,41 @@ public class PedidoService {
         }
 
         pedido.setStatus(Pedido.Status.FINALIZADO);
-        salvarPedidoNoArquivo(pedido);
+        pedido.setDataEntrega(LocalDateTime.now()); // ✅ registra data de entrega
+        salvarPedidoNoArquivo(pedido, clienteService, produtoService);
         return true;
     }
 
-    private void salvarPedidoNoArquivo(Pedido pedido) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
-            StringBuilder linha = new StringBuilder();
-            linha.append(pedido.getId()).append(";")
-                 .append(pedido.getCliente().getCpf()).append(";")
-                 .append(pedido.getStatus()).append(";")
-                 .append(pedido.getDataCriacao()).append(";");
 
-            List<String> itensStr = new ArrayList<>();
-            for (ItemPedido item : pedido.getItens()) {
-                itensStr.add(item.getProduto().getId() + "," + item.getQuantidade() + "," + item.getPrecoVenda());
+    private void salvarPedidoNoArquivo(Pedido pedido, ClienteService clienteService, ProdutoService produtoService) {
+        List<Pedido> pedidosExistentes = carregarPedidosDoArquivoSimples(clienteService, produtoService);
+
+        // Remove qualquer pedido com o mesmo ID
+        pedidosExistentes.removeIf(p -> p.getId() == pedido.getId());
+
+        // Adiciona o pedido atualizado
+        pedidosExistentes.add(pedido);
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo))) {
+            for (Pedido p : pedidosExistentes) {
+                StringBuilder linha = new StringBuilder();
+                linha.append(p.getId()).append(";")
+                    .append(p.getCliente().getCpf()).append(";")
+                    .append(p.getStatus()).append(";")
+                    .append(p.getDataCriacao()).append(";")
+                    .append(p.getDataFinalizacao() != null ? p.getDataFinalizacao() : "").append(";")
+                    .append(p.getDataPagamento() != null ? p.getDataPagamento() : "").append(";")
+                    .append(p.getDataEntrega() != null ? p.getDataEntrega() : "").append(";");
+
+                List<String> itensStr = new ArrayList<>();
+                for (ItemPedido item : p.getItens()) {
+                    itensStr.add(item.getProduto().getId() + "," + item.getQuantidade() + "," + item.getPrecoVenda());
+                }
+                linha.append(String.join("|", itensStr));
+
+                bw.write(linha.toString());
+                bw.newLine();
             }
-            linha.append(String.join("|", itensStr));
-
-            bw.write(linha.toString());
-            bw.newLine();
         } catch (IOException e) {
             System.out.println("Erro ao salvar pedido: " + e.getMessage());
         }

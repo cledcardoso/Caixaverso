@@ -16,6 +16,9 @@ public class Pedido {
     private LocalDateTime dataCriacao;
     private Status status;
     private List<ItemPedido> itens = new ArrayList<>();
+    private LocalDateTime dataFinalizacao;
+    private LocalDateTime dataPagamento;
+    private LocalDateTime dataEntrega;
 
     public Pedido(Cliente cliente) {
         this.id = contador++;
@@ -62,6 +65,7 @@ public class Pedido {
             return;
         }
         this.status = Status.AGUARDANDO_PAGAMENTO;
+        this.dataFinalizacao = LocalDateTime.now();
     }
 
     public void pagar() {
@@ -70,6 +74,7 @@ public class Pedido {
             return;
         }
         this.status = Status.PAGO;
+        this.dataPagamento = LocalDateTime.now();
     }
 
     public void entregar() {
@@ -78,6 +83,7 @@ public class Pedido {
             return;
         }
         this.status = Status.FINALIZADO;
+        this.dataEntrega = LocalDateTime.now();
     }
 
     public BigDecimal getValorTotal() {
@@ -90,10 +96,44 @@ public class Pedido {
         this.status = status;
     }
 
+    public void setDataFinalizacao(LocalDateTime dataFinalizacao) {
+        this.dataFinalizacao = dataFinalizacao;
+    }
+
+    public void setDataPagamento(LocalDateTime dataPagamento) {
+        this.dataPagamento = dataPagamento;
+    }
+
+    public void setDataEntrega(LocalDateTime dataEntrega) {
+        this.dataEntrega = dataEntrega;
+    }
+
+    public void setDataCriacao(LocalDateTime dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public String toCsv() {
+        return id + ";" +
+               cliente.getCpf() + ";" +
+               status + ";" +
+               getValorTotal() + ";" +
+               dataCriacao + ";" +
+               (dataFinalizacao != null ? dataFinalizacao : "") + ";" +
+               (dataPagamento != null ? dataPagamento : "") + ";" +
+               (dataEntrega != null ? dataEntrega : "");
+    }
+
     // Getters
     public long getId() { return id; }
     public Cliente getCliente() { return cliente; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public Status getStatus() { return status; }
     public List<ItemPedido> getItens() { return itens; }
+    public LocalDateTime getDataFinalizacao() { return dataFinalizacao; }
+    public LocalDateTime getDataPagamento() { return dataPagamento; }
+    public LocalDateTime getDataEntrega() { return dataEntrega; }
 }

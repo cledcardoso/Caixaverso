@@ -6,6 +6,7 @@ import util.NotificacaoPagamento;
 import util.NotificacaoEntrega;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -13,7 +14,8 @@ public class Main {
     private static final Scanner sc = new Scanner(System.in);
     private static final ClienteService clienteService = new ClienteService("clientes.csv");
     private static final ProdutoService produtoService = new ProdutoService("produtos.csv");
-    private static final PedidoService pedidoService = new PedidoService("pedidos.csv");
+    private static final PedidoService pedidoService =
+        new PedidoService(clienteService, produtoService, "pedidos.csv");
     
     public static void main(String[] args) {
         clienteService.carregarClientesDoArquivo();
@@ -597,7 +599,7 @@ public class Main {
 }
     }
 
-    private static void mostrarResumo() {
+    /*private static void mostrarResumo() {
         if (pedidoService.listarPedidosVazios()) {
             System.out.println("Nenhum pedido cadastrado.");
             return;
@@ -611,6 +613,40 @@ public class Main {
             System.out.println("Data: " + DateUtils.formatarData(pedido.getDataCriacao()));
             System.out.println("Status: " + pedido.getStatus());
             System.out.println("Itens:");
+            pedido.getItens().forEach(item ->
+                System.out.println("- " + item.getProduto().getNome() +
+                        " | Qtd: " + item.getQuantidade() +
+                        " | Preço: R$" + item.getPrecoVenda()));
+            System.out.printf("Valor Total: R$%.2f%n", pedido.getValorTotal());
+        } else {
+            System.out.println("Pedido não encontrado.");
+        }
+    }*/
+
+        private static void mostrarResumo() {
+        if (pedidoService.listarPedidosVazios()) {
+            System.out.println("Nenhum pedido cadastrado.");
+            return;
+        }
+
+        Pedido pedido = selecionarPedido();
+        if (pedido != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            System.out.println("\n=== Resumo do Pedido ===");
+            System.out.println("Pedido: #" + pedido.getId());
+            System.out.println("Cliente: " + pedido.getCliente().getNome() + " | CPF: " + pedido.getCliente().getCpf());
+            System.out.println("Status: " + pedido.getStatus());
+            System.out.println("Data de criação: " + pedido.getDataCriacao().format(formatter));
+
+            if (pedido.getDataFinalizacao() != null)
+                System.out.println("Data de finalização: " + pedido.getDataFinalizacao().format(formatter));
+            if (pedido.getDataPagamento() != null)
+                System.out.println("Data de pagamento: " + pedido.getDataPagamento().format(formatter));
+            if (pedido.getDataEntrega() != null)
+                System.out.println("Data de entrega: " + pedido.getDataEntrega().format(formatter));
+
+            System.out.println("\nItens:");
             pedido.getItens().forEach(item ->
                 System.out.println("- " + item.getProduto().getNome() +
                         " | Qtd: " + item.getQuantidade() +
