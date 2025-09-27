@@ -1,6 +1,5 @@
 import model.*;
 import service.*;
-import util.DateUtils;
 import util.NotificacaoCriacao;
 import util.NotificacaoPagamento;
 import util.NotificacaoEntrega;
